@@ -1,4 +1,10 @@
 
+// You should develop your tests here to assure yourself that your DrillLoginManage class 
+// meets the UR published in the coursework specification.
+
+//Note that you may use *any* classes in this Tests class that are available in Java 12 or SE 1.8. This includes these versions thread safe classes
+
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
