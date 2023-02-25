@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 
-//DrillLoginManager must handle exceptions locally i.e. it must not  explicitly 'throw' exceptions 
+//IMPORTANT: DrillLoginManager must handle exceptions locally i.e. it must not  explicitly 'throw' exceptions 
 //otherwise the compilation with the Test classes will fail
 public class DrillLoginManager implements Manager {
 
@@ -34,7 +34,7 @@ public class DrillLoginManager implements Manager {
 		// TODO Your code here	
 		//e.g.
 		myMethod();
-		return null;
+		return null; //Note that this return string is ignored by all UR except UR6
 	}
 	
 	//Note that you may add inner classes and methods to this file as shown below:

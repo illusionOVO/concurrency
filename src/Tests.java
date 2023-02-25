@@ -13,28 +13,48 @@ public class Tests {
 	int  t1 = 100; //Timeout 
 
 	public void exampleTest_A (){
-		//See UR1 in specification for description
+		/*
+		 *  UR1 Example
+		 *  
+		 * 	First:
+		 *      drillLoginManager.smallTeamRequest(team) is called with team = {Roustabout=2} 
+		 * 	Then:
+		 *      5 worker threads call workerLogin("Roustabout")
+		 * 
+		 *  The result should be: 
+		 *     2 Roustabout worker threads proceed (i.e., return from workerLogin),
+		 *     3 Roustabout workers should be blocked from proceeding.
+		 * 
+		 */
+		
 		System.out.println("\nExampleTest_A");
 		AtomicInteger roustaboutReleases = new AtomicInteger(0); //Declare thread-safe counters to accumulate the number of worker threads that return
-		DrillLoginManager manager =  new DrillLoginManager();	
+		DrillLoginManager drillLoginManager =  new DrillLoginManager();	
 		
-		//Define and run worker threads:
+		//Define Roustabout worker threads:
 		class ExampleTestWorkerThread extends Thread {
 			public void run(){
-				String teamReturned = manager.workerLogin("Roustabout"); //Note that teamName is ignored in this example
+				drillLoginManager.workerLogin("Roustabout"); 
 				roustaboutReleases.incrementAndGet();
 			};	
 		};			
+		
+		//Instantiate and start 5 Roustabouts:
 		for (int i=0; i < 5; i++) (new ExampleTestWorkerThread()).start();
 		System.out.println("4 Roustabout threads started");
-		try {Thread.sleep(t1);} catch (InterruptedException e) { e.printStackTrace();} //Give time for worker threads to execute
+		
+		//Give time for worker threads to execute and call workerLogin()
+		try {Thread.sleep(t1);} catch (InterruptedException e) { e.printStackTrace();} 
 
-		//Define and make request to manger:
+		//Define team request:
 		Map<String, Integer> teamRequest = new HashMap <String, Integer>();
 		teamRequest.put("Roustabout", 2);
-		System.out.println("teamRequest = " + teamRequest.toString());		
-		manager.smallTeamRequest(teamRequest); //Note 'anonymous' Request (no teamName) and no Driller required
-		try {Thread.sleep(t1);} catch (InterruptedException e) { e.printStackTrace();}  //Give time for worker threads to execute
+		System.out.println("teamRequest = " + teamRequest.toString());	
+		
+		//Make team request to the manager:
+		drillLoginManager.smallTeamRequest(teamRequest); //Note 'anonymous' Request (no teamName) and no Driller required
+		//Now give time for 2 worker threads to wake up:
+		try {Thread.sleep(t1);} catch (InterruptedException e) { e.printStackTrace();}  
 
 		//Check results:
 		System.out.println("Number of Roustabouts released by manager = " + roustaboutReleases.get());
