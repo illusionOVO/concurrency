@@ -10,7 +10,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tests {
-	int  t1 = 100; //Timeout 
+	int  t1 = 50; //Sleep timeout 
+	
+	
+	
 
 	public void exampleTest_A (){
 		/*
@@ -25,6 +28,9 @@ public class Tests {
 		 *     2 Roustabout worker threads proceed (i.e., return from workerLogin),
 		 *     3 Roustabout workers should be blocked from proceeding.
 		 * 
+		 *  Note that when this test is run an overall Timeout (t2 = 2 x t1 + 100ms) will be imposed.
+		 *  At t2 the process running this test will be terminated.
+		 *  
 		 */
 		
 		System.out.println("\nExampleTest_A");
@@ -62,42 +68,75 @@ public class Tests {
 		else System.out.println("Hence: FAIL");
 	}
 	
+	
+	
+	
+	
+	
+	
+	
 	public void exampleTest_B (){
-		//This example is relevant to UR5 and UR6
-		//Has teamName testing on Worker returns
-		//Uses drillerRequest() method so 1 driller is required in each team.
-		//3 Roustabouts start THEN 1 anonymousRequest for 2 Roustabouts by the main thread
+		/*
+		 * This example is relevant to UR5 and UR6 as it tests the 'teamReturned' string returned
+		 * by your .workerLogin() method. 
+		 * 
+		 * It uses the .drillerRequest() method, so 1 driller is required in each team. 
+		 *    3 Roustabout threads are started that each call .workerLogin("Roustabout")
+		 *    1 driller thread is started that calls .drillerRequest("TeamX", team = {Driller=1, Roustabout=2})
+		 *    
+		 *    The result should be that:
+		 *       The driller thread is allowed to proceed
+		 *       2 Roustabouts are allowed to proceed (and their team names are checked = "TeamX")
+		 *       1 Roustabout remains blocked.
+		 *       
+		 *  Note that when this test is run an overall Timeout (t2 = 2 x t1 + 100ms) will be imposed.
+		 *  At t2 the process running this test will be terminated.
+		 *  		 
+		 */
+		
 		System.out.println("\nExampleTest_B");
 		DrillLoginManager drillLoginManager =  new DrillLoginManager();
 		
-		//Declare thread-safe counters to accumulate the number of worker and Driller threads that return
+		//Declare thread-safe counters to accumulate the number of worker 
+		// and Driller threads that are allowed to proceed:
 		AtomicInteger drillerReleases = new AtomicInteger(0);
 		AtomicInteger roustaboutReleases = new AtomicInteger(0);	
 		
-		//Define the Team:
-		String teamName = "TeamX";		
-		Map<String, Integer> teamRequest = new HashMap <String, Integer>();
-		teamRequest.put("Driller", 1);
-		teamRequest.put("Roustabout", 2);	
-
+		//Define TeamX = request for 1 Driller & 2 Roustabouts 
+		String teamXname = "TeamX";		
+		Map<String, Integer> teamXrequest = new HashMap <String, Integer>();
+		teamXrequest.put("Driller", 1);
+		teamXrequest.put("Roustabout", 2);	
 		
-		//Define worker and driller threads:
+		//Define driller thread:
 		class ExampleDrillerThread extends Thread {
+			Map<String, Integer> teamRequest;
+			String teamName;
+			//Constructor to set teamName and TeamRequest of thread
+			ExampleDrillerThread(String teamName, Map<String, Integer> teamRequest) {
+				this.teamName = teamName;
+				this.teamRequest = new HashMap<String, Integer> (teamRequest); //Make shallow copy for safety
+			}
+			//Execution Block:
 		    public void run(){
-		        drillLoginManager.drillerRequest(teamName, teamRequest);
+		        drillLoginManager.drillerRequest(this.teamName, this.teamRequest);
 		        drillerReleases.incrementAndGet();
 		    };	
 		};	
+		
+		//Define worker thread
 		class ExampleTestWorkerThread extends Thread {
 			public void run(){
 				String threadName = Thread.currentThread().getName();
-				String teamReturned = drillLoginManager.workerLogin("Roustabout"); 
-				if (teamReturned == teamName) {
-					System.out.println("teamName returned by worker thread " + threadName + "(Roustabout) = " + teamReturned + ", is correct.");
+				String teamNameReturned = drillLoginManager.workerLogin("Roustabout"); 
+				if (teamNameReturned == teamXname) {
+					System.out.println("teamName returned by worker thread " + threadName + "(Roustabout) = " + teamNameReturned + ", is correct.");
 					roustaboutReleases.incrementAndGet();
 				}
 				else {
-					System.out.println("Error: teamName returned by worker thread " + threadName + "(Roustabout) = " + teamReturned + ", is incorrect (it should be " + teamName + ")");
+					System.out.println("Error: teamName returned by worker thread " + threadName + "(Roustabout) = " + teamNameReturned + ", is incorrect (it should be " + teamXname + "). Terminating test.");
+					System.out.println("Hence: FAIL");
+					System.exit(1);
 				};	
 			}	
 		};		
@@ -105,16 +144,18 @@ public class Tests {
 		//Start 3 roustabouts:
 		for (int i=0; i < 3; i++) (new ExampleTestWorkerThread()).start();
 		System.out.println("3 Roustabout threads started");
-		//Wait for them to run and suspend:
+		//Wait for them to run and block:
 		try {Thread.sleep(10); } catch (InterruptedException e) {e.printStackTrace();}
-		//Start Driller:
-		(new ExampleDrillerThread()).start();
-		System.out.println("1 Driller thread started by calling: 'drillLoginManager.drillerRequest', teamRequest = " + teamRequest + ", teamName = " + teamName);
+		
+		//Start teamX Driller:
+		ExampleDrillerThread exampleDrillerThread = new ExampleDrillerThread(teamXname, teamXrequest);
+		exampleDrillerThread.start();
+		System.out.println("1 Driller thread started by calling: 'drillLoginManager.drillerRequest', teamRequest = " + teamXrequest + ", teamName = " + teamXname);
 		//Wait for Driller to run and release Roustabouts:		
 		try {Thread.sleep(10); } catch (InterruptedException e) {e.printStackTrace();}	
 		
 		//Check results:
-		System.out.println("Number of Roustabouts released to run by drillLoginManager for team " + teamName + " = " + roustaboutReleases.get());
+		System.out.println("Number of Roustabouts released to run by drillLoginManager for team " + teamXname + " = " + roustaboutReleases.get());
 		System.out.println("Number of Driller threads released to run by drillLoginManager = " + drillerReleases.get());
 		if (drillerReleases.get() == 1 && roustaboutReleases.get() == 2) System.out.println("Hence: SUCCESS");
 		else System.out.println("Hence: FAIL");
