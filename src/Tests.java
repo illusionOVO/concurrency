@@ -77,7 +77,7 @@ public class Tests {
 	
 	public void exampleTest_B (){
 		/*
-		 * This example is relevant to UR5 and UR6 as it tests the 'teamReturned' string returned
+		 * This example is relevant to UR6 as it tests the 'teamReturned' string returned
 		 * by your .workerLogin() method. 
 		 * 
 		 * It uses the .drillerRequest() method, so 1 driller is required in each team. 
