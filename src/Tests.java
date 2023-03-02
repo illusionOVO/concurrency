@@ -46,8 +46,9 @@ public class Tests {
 		};			
 		
 		//Instantiate and start 5 Roustabouts:
-		for (int i=0; i < 5; i++) (new ExampleTestWorkerThread()).start();
-		System.out.println("4 Roustabout threads started");
+		int nRoustabouts = 5;
+		for (int i=0; i < nRoustabouts; i++) (new ExampleTestWorkerThread()).start();
+		System.out.println(nRoustabouts + " Roustabout threads started");
 		
 		//Give time for worker threads to execute and call workerLogin()
 		try {Thread.sleep(t1);} catch (InterruptedException e) { e.printStackTrace();} 

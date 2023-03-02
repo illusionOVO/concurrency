@@ -30,7 +30,7 @@ public class DrillLoginManager implements Manager {
 	}
 
 	@Override
-	public String workerLogin(String roll) {
+	public String workerLogin(String role) {
 		// TODO Your code here	
 		//e.g.
 		myMethod();

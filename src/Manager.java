@@ -5,6 +5,6 @@ public interface Manager {
 	
 	public void smallTeamRequest(Map<String, Integer> team);
 	public void drillerRequest(String teamName, Map<String, Integer> team);
-	public String workerLogin(String roll); 
+	public String workerLogin(String role); 
 	
 }
