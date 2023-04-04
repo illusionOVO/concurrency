@@ -1,4 +1,5 @@
-# f29oc-2022-23-concurrency-cw1 #
+
+concurrency
 
 Code stubs for coursework
 
